@@ -1,14 +1,11 @@
-body {
-  background-color: whitesmoke;
+.header-login {
+  margin-left: auto;
+  font-size: 1.3em;
 }
 
 main {
+  background-color: whitesmoke;
   margin-top: 20px;
-}
-
-.nav-title {
-  color: white;
-  font-weight: bold;
 }
 
 .fa-white:before {
@@ -21,8 +18,9 @@ main {
   color: rgb(0, 162, 255);
 }
 
-#contents {
+.contents {
   background-color: white;
+  margin-bottom: 20px;
 }
 .box_scrollbar {
   overflow: auto;
@@ -69,4 +67,8 @@ main {
 
 .inline-content {
   display: inline-block;
+}
+
+.footer {
+  margin: auto;
 }
