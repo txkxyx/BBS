@@ -43,7 +43,7 @@ export default class Main extends React.Component {
 
   get_contents() {
     axios.get(contents_url).then(response => {
-      this.setState({ contents: JSON.parse(response.data) });
+      this.setState({ contents: response.data });
     });
   }
 
@@ -93,7 +93,7 @@ function Content(props) {
   const contents = props.contents.map(data => (
     <div className={"content-body"}>
       <div className={"content-name inline-content"}>{data.name}</div>
-      <div className={"content-date inline-content"}>{data.date}</div>
+      <div className={"content-date inline-content"}>{data.insert_date}</div>
       <div className={"content-text"}>{data.text}</div>
     </div>
   ));

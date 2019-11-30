@@ -3,47 +3,60 @@ import datetime
 import json
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from flask_jwt_extended import (
+    JWTManager, jwt_required, create_access_token,
+    get_jwt_identity
+)
+from db import db_access, db_config
+from content import content_data
 
 application = Flask(__name__)
 # CROSSの許可
 CORS(application)
 
-CONTENTS_PATH = 'bbs/server/contents.json'
-USERS_PATH = 'bbs/server/users.json'
+# JWT
+application.config['JWT_SECRET_KEY'] = 'super-secret'  # Change this!
+jwt = JWTManager(application)
 
 
-def json_write(data_list, path):
-    with open(path, 'w') as f:
-        json.dump(data_list, f)
+@application.route('/login', methods=['POST'])
+def login():
+    # if not request.is_json:
+    #     return jsonify({"msg": "Missing JSON in request"}), 400
 
+    username = request.form['username']
+    password = request.form['password']
+    if not username:
+        return jsonify({"msg": "Missing username parameter"}), 400
+    if not password:
+        return jsonify({"msg": "Missing password parameter"}), 400
 
-def json_load(path):
-    with open(path, 'r') as f:
-        json_data = json.load(f)
-        return json.dumps(json_data)
+    if username != 'test' or password != 'test':
+        return jsonify({"msg": "Bad username or password"}), 401
 
-
-def get_users():
-    users_list = list()
-    for user in json.loads(json_load(USERS_PATH)):
-        users_list.append(User(user['id'], user['username'], user['password']))
-    return users_list
+    # Identity can be any data that is json serializable
+    access_token = create_access_token(identity=username)
+    return jsonify(access_token=access_token), 200
 
 
 @application.route('/post', methods=['POST'])
 def post():
-    data = {'name': request.form['name'], 'text': request.form['text'],
-            'date': datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S')}
-    data_list = json.loads(json_load(CONTENTS_PATH))
-    data_list.insert(0, data)
-    json_write(data_list, CONTENTS_PATH)
+    content = content_data.Contents(
+        name=request.form['name'], text=request.form['text'], insert_date=datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S'))
+    session, engine = db_access.init(
+        db_config.USER, db_config.HOST, db_config.DATABASE, db_config.PASSWORD)
+    result = db_access.add_data(session, content)
+    db_access.commit_close(session, engine)
     return jsonify()
 
 
 @application.route('/contents')
 def getContens():
-    data = json_load(CONTENTS_PATH)
-    return jsonify(data)
+    session, engine = db_access.init(
+        db_config.USER, db_config.HOST, db_config.DATABASE, db_config.PASSWORD)
+    contents = content_data.getAll(session)
+    db_access.commit_close(session, engine)
+    return jsonify(contents)
 
 
 if __name__ == "__main__":

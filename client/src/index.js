@@ -1,52 +1,34 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import Header from "./Header";
-import Main from "./Main";
+import createStore from "redux";
+// 全ての階層のコンポーネントからStoreを閲覧できるようにする
+import { Provider, connect } from "react-redux";
+import reducer from "./reducers";
+import { Header, Main } from "./components";
+import { login, logout } from "./actions";
 import { AppBar, Toolbar, Typography } from "@material-ui/core";
 import maincss from "./main.css";
 
+const store = createStore(reducer);
+
 class App extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      isLogin: false,
-      firstName: "",
-      lastName: ""
-    };
-  }
-
-  handleChangeFirstName = firstName => {
-    this.setState({ firstName: firstName });
-  };
-
-  handleChangeLastName = lastName => {
-    this.setState({ lastName: lastName });
-  };
-
-  handleChangeIsLogin = status => {
-    this.setState({ isLogin: status });
-  };
   render() {
+    const props = this.props;
     return (
       <div>
-        <Header
-          firstName={this.state.firstName}
-          lastName={this.state.lastName}
-          isLogin={this.state.isLogin}
-          onChangeFirstName={this.handleChangeFirstName}
-          onChangeLastName={this.handleChangeLastName}
-          onChangeIsLogin={this.handleChangeIsLogin}
-        />
-        <Main
-          firstName={this.state.firstName}
-          lastName={this.state.lastName}
-          isLogin={this.state.isLogin}
-        />
+        <Header id={props.id} login={props.login} logout={props.logout} />
+        <Main id={props.id} />
         <Footer />
       </div>
     );
   }
 }
+
+// StateとReducerを紐付ける
+const mapStateToProps = state => ({ id: state.user.is });
+// StateとActionを紐づける
+const mapDispatchToProps = { login, logout };
+export default connect(mapStateToProps, mapDispatchToProps)(App);
 
 function Footer() {
   return (
@@ -60,4 +42,9 @@ function Footer() {
   );
 }
 
-ReactDOM.render(<App />, document.getElementById("root"));
+ReactDOM.render(
+  <Provider store={store}>
+    <App />
+  </Provider>,
+  document.getElementById("root")
+);
